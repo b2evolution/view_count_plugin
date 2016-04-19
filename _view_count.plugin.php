@@ -38,6 +38,27 @@ class view_count_plugin extends Plugin
 
 
 	/**
+	 * Get definitions for widget specific editable params
+	 *
+	 * @see Plugin::GetDefaultSettings()
+	 * @param local params like 'for_editing' => true
+	 */
+	function get_widget_param_definitions( $params )
+	{
+		$r = parent::get_widget_param_definitions( $params );
+
+		if( isset( $r['allow_blockcache'] ) )
+		{	// Disable "allow blockcache" because this widget displays dynamic data:
+			$r['allow_blockcache']['defaultvalue'] = false;
+			$r['allow_blockcache']['disabled'] = 'disabled';
+			$r['allow_blockcache']['note'] = T_('This widget cannot be cached in the block cache.');
+		}
+
+		return $r;
+	}
+
+
+	/**
 	 * We want a table to store a count of views for each Item
 	 *
 	 * @return array
