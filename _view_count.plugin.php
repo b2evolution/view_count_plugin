@@ -21,7 +21,7 @@ class view_count_plugin extends Plugin
 	var $version = '5.0.0';
 	var $author = 'The b2evo Group';
 	var $group = 'widget';
-	var $subgroup = 'other';
+	var $subgroup = 'infoitem';
 
 	var $item_views_data;
 
