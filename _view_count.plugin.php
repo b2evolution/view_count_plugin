@@ -77,49 +77,6 @@ class view_count_plugin extends Plugin
 
 
 	/**
-	 * Event handler: Called at the end of the skin's HTML BODY section.
-	 *
-	 * Use this to add any HTML snippet at the end of the generated page.
-	 */
-	function SkinEndHtmlBody( & $params )
-	{
-		global $DB, $localtimenow;
-
-		if( $Item = & $this->get_viewed_Item() )
-		{
-			$DB->begin( 'SERIALIZABLE' );
-
-			$item_views_data = $this->get_item_views_data( $Item->ID, true );
-			if( empty( $item_views_data ) )
-			{	// Insert new record for the Item:
-				$DB->query( 'INSERT INTO '.$this->get_sql_table( 'items' ).'
-					       ( vcip_itm_ID, vcip_count, vcip_date )
-					VALUES ( '.$DB->quote( $Item->ID ).', 1, '.$DB->quote( date2mysql( $localtimenow ) ).' )',
-					'Insert new record to count the views for the Item #'.$Item->ID );
-
-				// Store the views data in cache:
-				$this->item_views_data[ $Item->ID ] = array(
-						'count' => 1,
-						'date'  => date2mysql( $localtimenow ),
-					);
-			}
-			else
-			{	// Increase a count for the Item:
-				$DB->query( 'UPDATE '.$this->get_sql_table( 'items' ).'
-					  SET vcip_count = vcip_count + 1
-					WHERE vcip_itm_ID = '.$DB->quote( $Item->ID ),
-					'Increase a count the views for the Item #'.$Item->ID );
-
-				// Update the cache:
-				$this->item_views_data[ $Item->ID ]['count'] = $item_views_data['count'] + 1;
-			}
-
-			$DB->commit();
-		}
-	}
-
-
-	/**
 	 * Event handler: SkinTag (widget)
 	 *
 	 * @param array Associative array of parameters.
@@ -131,6 +88,9 @@ class view_count_plugin extends Plugin
 		{	// No viewed Item:
 			return false;
 		}
+
+		// Set views data for the Item:
+		$this->set_item_views_data( $Item->ID );
 
 		// Get views data of the viewed Item:
 		$item_views_data = $this->get_item_views_data( $Item->ID );
@@ -207,6 +167,46 @@ class view_count_plugin extends Plugin
 		}
 
 		return $this->item_views_data[ $item_ID ];
+	}
+
+
+	/**
+	 * Set views data for the Item
+	 *
+	 * @param integer Item ID
+	 */
+	function set_item_views_data( $item_ID )
+	{
+		global $DB, $localtimenow;
+
+		$DB->begin( 'SERIALIZABLE' );
+
+		$item_views_data = $this->get_item_views_data( $item_ID, true );
+		if( empty( $item_views_data ) )
+		{	// Insert new record for the Item:
+			$DB->query( 'INSERT INTO '.$this->get_sql_table( 'items' ).'
+							 ( vcip_itm_ID, vcip_count, vcip_date )
+				VALUES ( '.$DB->quote( $item_ID ).', 1, '.$DB->quote( date2mysql( $localtimenow ) ).' )',
+				'Insert new record to count the views for the Item #'.$item_ID );
+
+			// Store the views data in cache:
+			$this->item_views_data[ $item_ID ] = array(
+					'count' => 1,
+					'date'  => date2mysql( $localtimenow ),
+				);
+		}
+		else
+		{	// Increase a count for the Item:
+			$DB->query( 'UPDATE '.$this->get_sql_table( 'items' ).'
+					SET vcip_count = vcip_count + 1
+				WHERE vcip_itm_ID = '.$DB->quote( $item_ID ),
+				'Increase a count the views for the Item #'.$item_ID );
+
+			// Update the cache:
+			$this->item_views_data[ $item_ID ]['count'] = $item_views_data['count'] + 1;
+		}
+
+		$DB->commit();
 	}
 }
 
