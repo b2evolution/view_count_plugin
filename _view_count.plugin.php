@@ -66,13 +66,13 @@ class view_count_plugin extends Plugin
 	function GetDbLayout()
 	{
 		return array(
-				'CREATE TABLE '.$this->get_sql_table( 'items' ).' (
+			'CREATE TABLE '.$this->get_sql_table( 'items' ).' (
 					vcip_itm_ID INT(11) UNSIGNED NOT NULL,
 					vcip_count  INT UNSIGNED NOT NULL DEFAULT 0,
 					vcip_date   TIMESTAMP NOT NULL DEFAULT "2000-01-01 00:00:00",
 					PRIMARY KEY( vcip_itm_ID )
 				) ENGINE = innodb',
-			);
+		);
 	}
 
 
@@ -88,9 +88,6 @@ class view_count_plugin extends Plugin
 		{	// No viewed Item:
 			return false;
 		}
-
-		// Set views data for the Item:
-		$this->set_item_views_data( $Item->ID );
 
 		// Get views data of the viewed Item:
 		$item_views_data = $this->get_item_views_data( $Item->ID );
@@ -113,6 +110,21 @@ class view_count_plugin extends Plugin
 		return true;
 	}
 
+	function SkinBeginHtmlHead()
+	{
+		global $MainList;
+
+		if( ! ( $Item = & $this->get_viewed_Item() ) )
+		{	// No viewed Item:
+			return false;
+		}
+
+		// Set views data for the Item:
+		$this->set_item_views_data( $Item->ID );
+
+		$MainList->restart();
+	}
+
 
 	/**
 	 * Get Item object that is currently viewed on disp=single or disp=page
@@ -124,7 +136,7 @@ class view_count_plugin extends Plugin
 		global $disp, $MainList;
 
 		if( ! empty( $disp ) && ( $disp == 'single' || $disp == 'page' ) &&
-		    ! empty( $MainList ) && $MainList->single_post )
+			! empty( $MainList ) && $MainList->single_post )
 		{	// If disp=single or disp=page:
 
 			// Restart list to get first single Item:
@@ -191,9 +203,9 @@ class view_count_plugin extends Plugin
 
 			// Store the views data in cache:
 			$this->item_views_data[ $item_ID ] = array(
-					'count' => 1,
-					'date'  => date2mysql( $localtimenow ),
-				);
+				'count' => 1,
+				'date'  => date2mysql( $localtimenow ),
+			);
 		}
 		else
 		{	// Increase a count for the Item:
