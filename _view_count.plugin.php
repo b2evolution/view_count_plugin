@@ -77,6 +77,21 @@ class view_count_plugin extends Plugin
 
 
 	/**
+	 * Event handler: Called before a blog gets displayed (in _blog_main.inc.php).
+	 */
+	function BeforeBlogDisplay( & $params )
+	{
+		if( ! ( $Item = & $this->get_viewed_Item() ) )
+		{	// No viewed Item:
+			return false;
+		}
+
+		// Set views data for the Item:
+		$this->set_item_views_data( $Item->ID );
+	}
+
+
+	/**
 	 * Event handler: SkinTag (widget)
 	 *
 	 * @param array Associative array of parameters.
@@ -88,9 +103,6 @@ class view_count_plugin extends Plugin
 		{	// No viewed Item:
 			return false;
 		}
-
-		// Set views data for the Item:
-		$this->set_item_views_data( $Item->ID );
 
 		// Get views data of the viewed Item:
 		$item_views_data = $this->get_item_views_data( $Item->ID );
@@ -121,18 +133,26 @@ class view_count_plugin extends Plugin
 	 */
 	function & get_viewed_Item()
 	{
-		global $disp, $MainList;
+		global $disp, $Item, $MainList;
 
-		if( ! empty( $disp ) && ( $disp == 'single' || $disp == 'page' ) &&
-		    ! empty( $MainList ) && $MainList->single_post )
+		if( ! empty( $disp ) && ( $disp == 'single' || $disp == 'page' ) )
 		{	// If disp=single or disp=page:
 
-			// Restart list to get first single Item:
-			$MainList->restart();
+			if( ! empty( $Item ) && $Item instanceof ItemLight )
+			{	// Get current global Item:
+				return $Item;
+			}
 
-			$single_Item = & mainlist_get_item();
+			if( ! empty( $MainList ) && $MainList->single_post )
+			{	// Try to get Item from main items list:
 
-			return $single_Item;
+				// Restart list to get first single Item:
+				$MainList->restart();
+
+				$single_Item = & mainlist_get_item();
+
+				return $single_Item;
+			}
 		}
 
 		$r = false;
